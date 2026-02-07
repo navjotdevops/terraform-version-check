@@ -127,7 +127,7 @@ jobs:
             const latestVersion = '${{ steps.version-check.outputs.latest_version }}';
             const currentVersion = '${{ steps.version-check.outputs.current_version }}';
             
-            const message = `This PR updates Terraform version to latest (**${latestVersion}**)`;
+            const message = `This PR contains Terraform code. It will be updated to **${latestVersion}**.`;
             
             await github.rest.issues.createComment({
               owner: context.repo.owner,

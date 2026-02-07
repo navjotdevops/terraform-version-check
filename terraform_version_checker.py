@@ -221,14 +221,14 @@ class TerraformVersionChecker:
         print(f"🔍 Scanning directory: {base_path}")
         
         # Check .terraform-version files
-        version_files = list(base_path.glob("**/.terraform-version"))
+        version_files = list(base_path.rglob(".terraform-version"))
         for version_file in version_files:
             finding = self.check_terraform_version_file(version_file)
             if finding:
                 self.findings.append(finding)
         
         # Check .tf files for required_version
-        tf_files = list(base_path.glob("**/*.tf"))
+        tf_files = list(base_path.rglob("*.tf"))
         for tf_file in tf_files:
             findings = self.check_required_version(tf_file)
             self.findings.extend(findings)
@@ -289,7 +289,7 @@ class TerraformVersionChecker:
         return {
             "updates_found": len(self.findings) > 0,
             "update_count": len(self.findings),
-            "latest_version": self.latest_version,
+            "latest_version": self.latest_version or "1.10.0",
             "current_version": self.get_current_version_summary(),
             "findings": self.findings
         }
