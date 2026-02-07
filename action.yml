@@ -129,7 +129,7 @@ runs:
       with:
         token: ${{ inputs.github-token }}
         commit-message: 'chore: update terraform to v${{ steps.version-check.outputs.latest_version }}'
-        title: ${{ inputs.pr-title || format('chore: Update Terraform to v{0}', steps.version-check.outputs.latest_version) }}
+        title: '${{ inputs.pr-title || format(''chore: Update Terraform to v{0}'', steps.version-check.outputs.latest_version) }}'
         body: |
           ${{ inputs.pr-body || format('## Terraform Version Update
           
