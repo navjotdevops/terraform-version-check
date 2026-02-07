@@ -63,7 +63,7 @@ inputs:
 
   github-token:
     description: 'GitHub token for creating PRs and API access'
-    default: ${{ github.token }}
+    default: '${{ github.token }}'
     required: false
 
 outputs:
@@ -114,11 +114,17 @@ runs:
       run: |
         python ${{ github.action_path }}/terraform_version_checker.py
 
+    - name: PR Debug Info
+      shell: bash
+      run: |
+        echo "🔍 Create PR requested: ${{ inputs.create-pr }}"
+        echo "📊 Updates found: ${{ steps.version-check.outputs.updates_found }}"
+        echo "📦 Target Version: ${{ steps.version-check.outputs.latest_version }}"
+
     - name: Create Pull Request
       if: |
         inputs.create-pr == 'true' && 
-        steps.version-check.outputs.updates_found == 'true' && 
-        env.GITHUB_ACTIONS == 'true'
+        steps.version-check.outputs.updates_found == 'true'
       uses: peter-evans/create-pull-request@v6
       with:
         token: ${{ inputs.github-token }}
