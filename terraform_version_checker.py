@@ -20,20 +20,26 @@ import requests
 class TerraformVersionChecker:
     """Check Terraform versions and suggest upgrades."""
     
-    def __init__(self, directory: str = "/", github_token: Optional[str] = None):
+    def __init__(self, directory: str = "/", github_token: Optional[str] = None, patches_behind: int = 2):
         self.directory = directory
         self.github_token = github_token
+        self.patches_behind = patches_behind
         self.latest_version = None
         self.findings = []
+        self.current_versions = set()  # Track unique current versions found
         
-    def get_latest_terraform_version(self) -> str:
-        """Fetch the latest Terraform version from HashiCorp releases."""
+    def get_latest_terraform_version(self, patches_behind: int = 2) -> str:
+        """Fetch the latest Terraform version from HashiCorp releases.
+        
+        Args:
+            patches_behind: Number of patch versions behind latest (default: 2)
+        """
         try:
             # Use HashiCorp's releases API
             url = "https://api.releases.hashicorp.com/v1/releases/terraform"
             params = {
                 "license_class": "oss",
-                "limit": "50"
+                "limit": "100"  # Get more releases to ensure we have enough patches
             }
             
             response = requests.get(url, params=params, timeout=10)
@@ -52,8 +58,26 @@ class TerraformVersionChecker:
                         continue
             
             if stable_versions:
-                latest = max(stable_versions)
-                self.latest_version = str(latest)
+                # Sort versions in descending order
+                stable_versions.sort(reverse=True)
+                latest = stable_versions[0]
+                
+                # Get the same major.minor but patches_behind versions back
+                target_major_minor = f"{latest.major}.{latest.minor}"
+                same_minor_versions = [
+                    v for v in stable_versions 
+                    if f"{v.major}.{v.minor}" == target_major_minor
+                ]
+                
+                # Get version 'patches_behind' patches back
+                if len(same_minor_versions) > patches_behind:
+                    target_version = same_minor_versions[patches_behind]
+                else:
+                    # If not enough patches, use the oldest in this minor
+                    target_version = same_minor_versions[-1] if same_minor_versions else latest
+                
+                self.latest_version = str(target_version)
+                print(f"ℹ️  Targeting version {patches_behind} patch(es) behind latest: {self.latest_version}")
                 return self.latest_version
             
             # Fallback
@@ -104,6 +128,7 @@ class TerraformVersionChecker:
                 latest = version.parse(self.latest_version)
                 
                 if current < latest:
+                    self.current_versions.add(parsed_version)  # Track current version
                     return {
                         "type": "terraform-version-file",
                         "file": str(file_path),
@@ -144,6 +169,7 @@ class TerraformVersionChecker:
                     latest = version.parse(self.latest_version)
                     
                     if current < latest:
+                        self.current_versions.add(parsed_version)  # Track current version
                         findings.append({
                             "type": "required-version",
                             "file": str(file_path),
@@ -225,12 +251,23 @@ class TerraformVersionChecker:
         
         return "\n".join(report)
     
+    def get_current_version_summary(self) -> str:
+        """Get a summary of current versions found."""
+        if not self.current_versions:
+            return "unknown"
+        if len(self.current_versions) == 1:
+            return list(self.current_versions)[0]
+        # Multiple versions found
+        sorted_versions = sorted(self.current_versions, key=lambda x: version.parse(x))
+        return f"{sorted_versions[0]} (and others)"
+    
     def generate_github_output(self) -> Dict:
         """Generate GitHub Actions output format."""
         return {
             "updates_found": len(self.findings) > 0,
             "update_count": len(self.findings),
             "latest_version": self.latest_version,
+            "current_version": self.get_current_version_summary(),
             "findings": self.findings
         }
     
@@ -245,12 +282,14 @@ class TerraformVersionChecker:
                 f.write(f"updates_found={str(output['updates_found']).lower()}\n")
                 f.write(f"update_count={output['update_count']}\n")
                 f.write(f"latest_version={output['latest_version']}\n")
+                f.write(f"current_version={output['current_version']}\n")
                 f.write(f"findings={json.dumps(output['findings'])}\n")
         
         # Also print for visibility
         print(f"\n::set-output name=updates_found::{str(output['updates_found']).lower()}")
         print(f"::set-output name=update_count::{output['update_count']}")
         print(f"::set-output name=latest_version::{output['latest_version']}")
+        print(f"::set-output name=current_version::{output['current_version']}")
 
 
 def main():
@@ -274,18 +313,27 @@ def main():
         default=os.getenv("INPUT_FAIL_ON_UPDATES", "false").lower() == "true",
         help="Fail the action if updates are found"
     )
+    parser.add_argument(
+        "--patches-behind",
+        type=int,
+        default=int(os.getenv("INPUT_PATCHES_BEHIND", "2")),
+        help="Number of patch versions behind latest to target (default: 2)"
+    )
     
     args = parser.parse_args()
     
     # Support multiple directories separated by newlines
     directories = [d.strip() for d in args.directory.split("\n") if d.strip()]
     
-    checker = TerraformVersionChecker(github_token=args.github_token)
+    checker = TerraformVersionChecker(
+        github_token=args.github_token,
+        patches_behind=args.patches_behind
+    )
     
     # Get latest version
-    print(f"🔍 Fetching latest Terraform version...")
-    latest = checker.get_latest_terraform_version()
-    print(f"✅ Latest stable Terraform version: {latest}\n")
+    print(f"🔍 Fetching Terraform version ({args.patches_behind} patch(es) behind latest)...")
+    latest = checker.get_latest_terraform_version(args.patches_behind)
+    print(f"✅ Target Terraform version: {latest}\n")
     
     # Scan each directory
     for directory in directories:

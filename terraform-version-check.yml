@@ -47,6 +47,7 @@ jobs:
           script: |
             const findings = JSON.parse(`${{ steps.version-check.outputs.findings }}`);
             const latestVersion = '${{ steps.version-check.outputs.latest_version }}';
+            const currentVersion = '${{ steps.version-check.outputs.current_version }}';
             const updateCount = '${{ steps.version-check.outputs.update_count }}';
             
             // Check if issue already exists
@@ -58,7 +59,7 @@ jobs:
             });
             
             const existingIssue = issues.data.find(issue => 
-              issue.title.includes(`Terraform ${latestVersion}`)
+              issue.title.includes(`Terraform to v${latestVersion}`)
             );
             
             if (existingIssue) {
@@ -67,11 +68,12 @@ jobs:
             }
             
             // Create issue body
-            let body = `## 🔄 Terraform Version Updates Available\n\n`;
-            body += `A new stable version of Terraform is available: **${latestVersion}**\n\n`;
+            let body = `## 🔄 Terraform Version Update Available\n\n`;
+            body += `A new stable version of Terraform is available for upgrade.\n\n`;
             body += `### Summary\n\n`;
-            body += `- Found **${updateCount}** file(s) that can be updated\n`;
-            body += `- Latest stable version: **${latestVersion}**\n\n`;
+            body += `- Current version: **${currentVersion}**\n`;
+            body += `- Target version: **${latestVersion}**\n`;
+            body += `- Files to update: **${updateCount}**\n\n`;
             body += `### Details\n\n`;
             
             // Group findings by type
@@ -108,7 +110,7 @@ jobs:
             const issue = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `Update Terraform to version ${latestVersion}`,
+              title: `feat: Update Terraform to v${latestVersion}`,
               body: body,
               labels: ['terraform-version-update', 'dependencies']
             });
@@ -124,10 +126,13 @@ jobs:
           script: |
             const updateCount = '${{ steps.version-check.outputs.update_count }}';
             const latestVersion = '${{ steps.version-check.outputs.latest_version }}';
+            const currentVersion = '${{ steps.version-check.outputs.current_version }}';
             
-            const message = `## ⚠️ Terraform Version Updates Available
+            const message = `## ⚠️ Terraform Version Update Available
             
-This PR contains Terraform code, and **${updateCount}** version specification(s) can be updated to the latest stable version **${latestVersion}**.
+This PR contains Terraform code. Current version **${currentVersion}** can be updated to **${latestVersion}**.
+
+**${updateCount}** file(s) need to be updated.
 
 While this doesn't block merging, consider updating to benefit from the latest features and fixes.
 

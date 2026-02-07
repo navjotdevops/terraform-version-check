@@ -29,6 +29,14 @@ inputs:
       Set to 'true' to fail the workflow when updates are available.
     default: 'false'
     required: false
+  
+  patches-behind:
+    description: >
+      Number of patch versions behind the latest to target.
+      For example, if latest is 1.14.4 and patches-behind is 2, 
+      the action will suggest 1.14.2 instead.
+    default: '2'
+    required: false
 
 outputs:
   updates_found:
@@ -37,8 +45,11 @@ outputs:
   update_count:
     description: 'Number of version updates recommended'
   
+  current_version:
+    description: 'Current Terraform version(s) found in the repository'
+  
   latest_version:
-    description: 'Latest stable Terraform version available'
+    description: 'Target Terraform version (patches-behind from latest stable)'
   
   findings:
     description: 'JSON array of all findings with details'

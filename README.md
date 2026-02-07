@@ -7,6 +7,8 @@ A GitHub Action that automatically checks your Terraform version specifications 
 - ✅ Checks `.terraform-version` files
 - ✅ Checks `required_version` constraints in Terraform files
 - ✅ Fetches latest stable Terraform version from HashiCorp
+- ✅ **Configurable patch offset** - Target N patches behind latest (e.g., 1.14.2 instead of 1.14.4)
+- ✅ Tracks current versions in use
 - ✅ Supports multiple directory scanning
 - ✅ Generates detailed reports
 - ✅ Optionally fails workflow if updates are needed
@@ -64,6 +66,27 @@ jobs:
     fail-on-updates: 'true'
 ```
 
+#### Target Specific Patch Version
+
+By default, the action targets 2 patch versions behind the latest. You can customize this:
+
+```yaml
+- name: Check Terraform versions
+  uses: your-org/terraform-version-checker-action@v1
+  with:
+    directory: '.'
+    patches-behind: '2'  # If latest is 1.14.4, this will suggest 1.14.2
+```
+
+Set to `0` to always use the absolute latest:
+
+```yaml
+- name: Check Terraform versions
+  uses: your-org/terraform-version-checker-action@v1
+  with:
+    patches-behind: '0'  # Use the absolute latest version
+```
+
 #### Create Issue for Updates
 
 ```yaml
@@ -80,20 +103,22 @@ jobs:
     script: |
       const findings = JSON.parse('${{ steps.tf-check.outputs.findings }}');
       const latestVersion = '${{ steps.tf-check.outputs.latest_version }}';
+      const currentVersion = '${{ steps.tf-check.outputs.current_version }}';
       
-      let body = `## Terraform Version Updates Available\n\n`;
-      body += `Latest stable version: **${latestVersion}**\n\n`;
+      let body = `## Terraform Version Update Available\n\n`;
+      body += `- Current version: **${currentVersion}**\n`;
+      body += `- Target version: **${latestVersion}**\n\n`;
       body += `Found ${findings.length} file(s) that can be updated:\n\n`;
       
       findings.forEach(finding => {
         body += `### ${finding.file}\n`;
         if (finding.type === 'terraform-version-file') {
           body += `- Current: ${finding.current_version}\n`;
-          body += `- Latest: ${finding.latest_version}\n`;
+          body += `- Target: ${finding.latest_version}\n`;
         } else {
           body += `- Current constraint: \`${finding.current_constraint}\`\n`;
           body += `- Current version: ${finding.current_version}\n`;
-          body += `- Latest: ${finding.latest_version}\n`;
+          body += `- Target: ${finding.latest_version}\n`;
           body += `- Suggested: \`${finding.suggested_constraint}\`\n`;
         }
         body += '\n';
@@ -102,7 +127,7 @@ jobs:
       await github.rest.issues.create({
         owner: context.repo.owner,
         repo: context.repo.repo,
-        title: `Terraform versions can be updated to ${latestVersion}`,
+        title: `feat: Update Terraform to v${latestVersion}`,
         body: body,
         labels: ['terraform', 'dependencies']
       });
@@ -124,10 +149,13 @@ jobs:
     script: |
       const updateCount = '${{ steps.tf-check.outputs.update_count }}';
       const latestVersion = '${{ steps.tf-check.outputs.latest_version }}';
+      const currentVersion = '${{ steps.tf-check.outputs.current_version }}';
       
-      const message = `## ⚠️ Terraform Version Updates Available
-      
-Found ${updateCount} Terraform version(s) that can be updated to **${latestVersion}**.
+      const message = `## ⚠️ Terraform Version Update Available
+
+Current version **${currentVersion}** can be updated to **${latestVersion}**.
+
+Found ${updateCount} file(s) that need updating.
 
 Please review the action logs for details.`;
       
@@ -146,6 +174,7 @@ Please review the action logs for details.`;
 | `directory` | Directory to scan (supports multiple paths separated by newlines) | No | `.` |
 | `token` | GitHub token for API access | No | `${{ github.token }}` |
 | `fail-on-updates` | Fail the action if updates are found | No | `false` |
+| `patches-behind` | Number of patch versions behind latest to target | No | `2` |
 
 ## Outputs
 
@@ -153,16 +182,17 @@ Please review the action logs for details.`;
 |--------|-------------|
 | `updates_found` | Whether any outdated versions were found (`true`/`false`) |
 | `update_count` | Number of version updates recommended |
-| `latest_version` | Latest stable Terraform version available |
+| `current_version` | Current Terraform version(s) found in the repository |
+| `latest_version` | Target Terraform version (patches-behind from latest) |
 | `findings` | JSON array of all findings with details |
 
 ## How It Works
 
-1. **Fetches Latest Version**: Queries HashiCorp's releases API to get the latest stable Terraform version
+1. **Fetches Target Version**: Queries HashiCorp's releases API and calculates target version based on `patches-behind` parameter
 2. **Scans Files**: Looks for:
    - `.terraform-version` files (exact version specifications)
    - `required_version` constraints in `*.tf` files
-3. **Compares Versions**: Parses version constraints and compares with latest
+3. **Compares Versions**: Parses version constraints and compares with target version
 4. **Reports Findings**: Generates a detailed report with update recommendations
 
 ## Example Output

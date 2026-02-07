@@ -1,0 +1,28 @@
+name: Simple Terraform Version Check
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # Weekly on Monday
+  workflow_dispatch:
+
+jobs:
+  check-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Check Terraform versions
+        id: check
+        uses: your-org/terraform-version-checker-action@v1
+        with:
+          directory: '.'
+          patches-behind: '2'  # Target 2 patches behind latest (e.g., 1.14.2 instead of 1.14.4)
+          fail-on-updates: 'false'
+      
+      - name: Show results
+        run: |
+          echo "Current version: ${{ steps.check.outputs.current_version }}"
+          echo "Target version: ${{ steps.check.outputs.latest_version }}"
+          echo "Updates found: ${{ steps.check.outputs.updates_found }}"
+          echo "Update count: ${{ steps.check.outputs.update_count }}"
