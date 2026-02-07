@@ -27,7 +27,7 @@ jobs:
       
       - name: Run Terraform version checker
         id: version-check
-        uses: your-org/terraform-version-checker-action@v1
+        uses: navjotdevops/terraform-version-check@main
         with:
           directory: |
             ./infrastructure
