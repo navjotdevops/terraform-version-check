@@ -32,7 +32,6 @@ inputs:
       Number of patch versions behind the latest to target.
       For example, if latest is 1.14.4 and patches-behind is 2, 
       the action will suggest 1.14.2 instead.
-    default: '2'
     required: false
   
   apply-updates:
