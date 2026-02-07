@@ -30,8 +30,7 @@ jobs:
         uses: navjotdevops/terraform-version-check@main
         with:
           directory: |
-            ./infrastructure
-            ./modules
+            .
           fail-on-updates: 'false'
       
       - name: Display results
@@ -128,15 +127,7 @@ jobs:
             const latestVersion = '${{ steps.version-check.outputs.latest_version }}';
             const currentVersion = '${{ steps.version-check.outputs.current_version }}';
             
-            const message = `## ⚠️ Terraform Version Update Available
-            
-            This PR contains Terraform code. updated to **${latestVersion}**.
-            
-            **${updateCount}** file(s) need to be updated.
-            
-            While this doesn't block merging, consider updating to benefit from the latest features and fixes.
-            
-            Check the action logs for detailed information.`;
+            const message = `This PR updates Terraform version to latest (**${latestVersion}**)`;
             
             await github.rest.issues.createComment({
               owner: context.repo.owner,

@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: your-username/terraform-version-checker-action@v1
+      - uses: navjotdevops/terraform-version-check@v1
 ```
 
 ### Option B: Copy to Your Repository
@@ -52,7 +52,7 @@ jobs:
 ### Check Specific Directories
 
 ```yaml
-- uses: your-username/terraform-version-checker-action@v1
+- uses: navjotdevops/terraform-version-check@v1
   with:
     directory: |
       ./infrastructure
@@ -62,7 +62,7 @@ jobs:
 ### Fail on Outdated Versions
 
 ```yaml
-- uses: your-username/terraform-version-checker-action@v1
+- uses: navjotdevops/terraform-version-check@v1
   with:
     fail-on-updates: 'true'
 ```
@@ -130,7 +130,7 @@ on:
 ## Need Help?
 
 - 📝 Check the [README](README.md) for detailed documentation
-- 🐛 [Report issues](https://github.com/your-username/terraform-version-checker-action/issues)
+- 🐛 [Report issues](https://github.com/navjotdevops/terraform-version-check/issues)
 - 💬 Ask questions in discussions
 
 ## Publishing the Action

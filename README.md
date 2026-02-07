@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Check Terraform versions
-        uses: navjotdevops/terraform-version-checker-action@v1
+        uses: navjotdevops/terraform-version-check@v1
         with:
           directory: '.'
 ```
@@ -48,7 +48,7 @@ jobs:
 
 ```yaml
 - name: Check Terraform versions
-  uses: navjotdevops/terraform-version-checker-action@v1
+  uses: navjotdevops/terraform-version-check@v1
   with:
     directory: |
       ./infrastructure/aws
@@ -60,7 +60,7 @@ jobs:
 
 ```yaml
 - name: Check Terraform versions
-  uses: navjotdevops/terraform-version-checker-action@v1
+  uses: navjotdevops/terraform-version-check@v1
   with:
     directory: '.'
     fail-on-updates: 'true'
@@ -72,7 +72,7 @@ By default, the action targets 2 patch versions behind the latest. You can custo
 
 ```yaml
 - name: Check Terraform versions
-  uses: navjotdevops/terraform-version-checker-action@v1
+  uses: navjotdevops/terraform-version-check@v1
   with:
     directory: '.'
     patches-behind: '2'  # If latest is 1.14.4, this will suggest 1.14.2
@@ -82,7 +82,7 @@ Set to `0` to always use the absolute latest:
 
 ```yaml
 - name: Check Terraform versions
-  uses: navjotdevops/terraform-version-checker-action@v1
+  uses: navjotdevops/terraform-version-check@v1
   with:
     patches-behind: '0'  # Use the absolute latest version
 ```
@@ -92,7 +92,7 @@ Set to `0` to always use the absolute latest:
 ```yaml
 - name: Check Terraform versions
   id: tf-check
-  uses: navjotdevops/terraform-version-checker-action@v1
+  uses: navjotdevops/terraform-version-check@v1
   with:
     directory: '.'
 
@@ -138,7 +138,7 @@ Set to `0` to always use the absolute latest:
 ```yaml
 - name: Check Terraform versions
   id: tf-check
-  uses: navjotdevops/terraform-version-checker-action@v1
+  uses: navjotdevops/terraform-version-check@v1
   with:
     directory: '.'
 
@@ -305,4 +305,4 @@ MIT License - see LICENSE file for details
 
 ## Support
 
-If you encounter any issues or have questions, please [open an issue](https://github.com/navjotdevops/terraform-version-checker-action/issues).
+If you encounter any issues or have questions, please [open an issue](https://github.com/navjotdevops/terraform-version-check/issues).

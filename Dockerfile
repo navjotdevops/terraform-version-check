@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
-LABEL maintainer="your-email@example.com"
-LABEL org.opencontainers.image.source="https://github.com/your-org/terraform-version-checker-action"
+LABEL maintainer="singh.navjot737@gmail.com"
+LABEL org.opencontainers.image.source="https://github.com/navjotdevops/terraform-version-check"
 LABEL org.opencontainers.image.description="GitHub Action to check Terraform versions and suggest upgrades"
 
 # Install dependencies
