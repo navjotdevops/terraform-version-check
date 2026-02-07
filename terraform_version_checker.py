@@ -94,11 +94,16 @@ class TerraformVersionChecker:
         # Remove whitespace
         constraint = constraint.strip()
         
+        # Strip leading 'v' if present (e.g., v1.5.0 -> 1.5.0)
+        if constraint.startswith('v'):
+            constraint = constraint[1:]
+        
         # Match patterns like:
         # >= 1.0.0
         # ~> 1.0
         # = 1.0.0
         # 1.0.0
+        # v1.0.0 (handled by strip above)
         patterns = [
             r'[>=<~!]*\s*(\d+\.\d+(?:\.\d+)?)',  # With operators
             r'^(\d+\.\d+(?:\.\d+)?)$',  # Just version
@@ -107,7 +112,11 @@ class TerraformVersionChecker:
         for pattern in patterns:
             match = re.search(pattern, constraint)
             if match:
-                return match.group(1)
+                res = match.group(1)
+                # Ensure no leading 'v' in the middle of a constraint like '>= v1.0'
+                if res.startswith('v'):
+                    res = res[1:]
+                return res
         
         return None
     
@@ -122,13 +131,15 @@ class TerraformVersionChecker:
             if not parsed_version:
                 return None
             
+            # Always track found version
+            self.current_versions.add(parsed_version)
+            
             # Compare with latest
             try:
                 current = version.parse(parsed_version)
                 latest = version.parse(self.latest_version)
                 
                 if current < latest:
-                    self.current_versions.add(parsed_version)  # Track current version
                     return {
                         "type": "terraform-version-file",
                         "file": str(file_path),
@@ -153,9 +164,10 @@ class TerraformVersionChecker:
                 content = f.read()
             
             # Match terraform block with required_version
-            # Handles both simple and complex patterns
-            pattern = r'terraform\s*{[^}]*required_version\s*=\s*"([^"]+)"'
-            matches = re.finditer(pattern, content, re.DOTALL)
+            # More robust pattern that handles nested blocks inside terraform {}
+            # by searching for required_version as a standalone assignment
+            pattern = r'required_version\s*=\s*"([^"]+)"'
+            matches = re.finditer(pattern, content)
             
             for match in matches:
                 constraint = match.group(1)
@@ -164,12 +176,14 @@ class TerraformVersionChecker:
                 if not parsed_version:
                     continue
                 
+                # Always track found version
+                self.current_versions.add(parsed_version)
+                
                 try:
                     current = version.parse(parsed_version)
                     latest = version.parse(self.latest_version)
                     
                     if current < latest:
-                        self.current_versions.add(parsed_version)  # Track current version
                         findings.append({
                             "type": "required-version",
                             "file": str(file_path),
