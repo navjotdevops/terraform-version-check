@@ -378,7 +378,7 @@ def main():
     parser.add_argument(
         "--patches-behind",
         type=int,
-        default=int(os.getenv("INPUT_PATCHES_BEHIND", "2")),
+        default=int(os.environ.get("INPUT_PATCHES_BEHIND") if os.environ.get("INPUT_PATCHES_BEHIND") else "2"),
         help="Number of patch versions behind latest to target (default: 2)"
     )
     parser.add_argument(
