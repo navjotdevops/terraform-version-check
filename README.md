@@ -13,6 +13,8 @@ A GitHub Action that automatically checks your Terraform version specifications 
 - ✅ Generates detailed reports
 - ✅ Optionally fails workflow if updates are needed
 - ✅ Provides structured outputs for further automation
+- ✅ **Auto-Apply Updates** - Automatically updates your files with the new version
+- ✅ **Automated Pull Requests** - Creates a ready-to-merge PR with beautiful release notes
 
 ## Usage
 
@@ -41,6 +43,28 @@ jobs:
         with:
           directory: '.'
 ```
+
+### Automated Pull Requests (Recommended)
+
+Automatically update your Terraform versions and raise a Pull Request with one simple step.
+
+```yaml
+- name: Auto-update Terraform
+  uses: navjotdevops/terraform-version-check@v1
+  with:
+    directory: '.'
+    apply-updates: 'true'  # Modifies your files
+    create-pr: 'true'      # Creates the PR automatically
+    patches-behind: '2'    # Safe offset (e.g., target 1.14.2 if 1.14.4 is latest)
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+> **Note:** Ensure your GITHUB_TOKEN has **Write** permissions. You can set this in your workflow:
+> ```yaml
+> permissions:
+>   contents: write
+>   pull-requests: write
+> ```
 
 ### Advanced Usage
 
@@ -172,9 +196,13 @@ Please review the action logs for details.`;
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
 | `directory` | Directory to scan (supports multiple paths separated by newlines) | No | `.` |
-| `token` | GitHub token for API access | No | `${{ github.token }}` |
+| `github-token` | GitHub token for PR creation and API access | No | `${{ github.token }}` |
 | `fail-on-updates` | Fail the action if updates are found | No | `false` |
 | `patches-behind` | Number of patch versions behind latest to target | No | `2` |
+| `apply-updates` | Automatically modify files with the suggested updates | No | `false` |
+| `create-pr` | Automatically create a Pull Request with the updates | No | `false` |
+| `pr-title` | Custom title for the Pull Request | No | `chore: Update Terraform to vX.Y.Z` |
+| `pr-body` | Custom body content for the Pull Request | No | Detailed Markdown Template |
 
 ## Outputs
 

@@ -25,7 +25,32 @@ jobs:
       - uses: navjotdevops/terraform-version-check@v1
 ```
 
-### Option B: Copy to Your Repository
+### Option B: Fully Automated Updates (Recommended)
+
+Automatically update your codes and raise a Pull Request:
+
+```yaml
+# .github/workflows/terraform-update.yml
+name: Auto-update Terraform
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: navjotdevops/terraform-version-check@v1
+        with:
+          apply-updates: 'true'
+          create-pr: 'true'
+```
+
+### Option C: Copy to Your Repository (Local Action)
 
 1. Copy the action files to `.github/actions/terraform-version-checker/` in your repo
 2. Use it as a local action:
@@ -72,8 +97,10 @@ jobs:
 The action will:
 1. ✅ Fetch the latest Terraform version
 2. 🔍 Scan your files for version specifications
-3. 📊 Generate a detailed report
-4. 💡 Suggest updates
+3. 🛠️ **Apply updates** (if enabled)
+4. 🚀 **Raise a Pull Request** (if enabled)
+5. 📊 Generate a detailed report
+6. 💡 Suggest updates
 
 ## Example Output
 
