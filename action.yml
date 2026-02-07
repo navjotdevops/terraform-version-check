@@ -54,7 +54,6 @@ inputs:
 
   pr-title:
     description: 'Title for the generated Pull Request'
-    default: 'chore: Update Terraform to v${{ steps.version-check.outputs.latest_version }}'
     required: false
 
   pr-body:
