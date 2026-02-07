@@ -34,24 +34,32 @@ class TerraformVersionChecker:
         Args:
             patches_behind: Number of patch versions behind latest (default: 2)
         """
+        # Default fallback version
+        fallback_version = "1.10.0"
+        
         try:
             # Use HashiCorp's releases API
             url = "https://api.releases.hashicorp.com/v1/releases/terraform"
+            # Remove license_class if it's causing 422 errors
+            headers = {
+                "User-Agent": "TerraformVersionChecker/1.0"
+            }
             params = {
-                "license_class": "oss",
-                "limit": "100"  # Get more releases to ensure we have enough patches
+                "limit": "20" 
             }
             
-            response = requests.get(url, params=params, timeout=10)
+            response = requests.get(url, params=params, headers=headers, timeout=10)
             response.raise_for_status()
             
             releases = response.json()
             
-            # Filter stable versions (no -alpha, -beta, -rc)
+            # Filter stable versions (no -alpha, -beta, -rc, -dev)
             stable_versions = []
             for release in releases:
                 ver = release.get("version", "")
-                if ver and not any(tag in ver for tag in ["-alpha", "-beta", "-rc"]):
+                is_prerelease = release.get("is_prerelease", False)
+                
+                if ver and not is_prerelease and not any(tag in ver.lower() for tag in ["-alpha", "-beta", "-rc", "-dev"]):
                     try:
                         stable_versions.append(version.parse(ver))
                     except Exception:
@@ -80,13 +88,14 @@ class TerraformVersionChecker:
                 print(f"ℹ️  Targeting version {patches_behind} patch(es) behind latest: {self.latest_version}")
                 return self.latest_version
             
-            # Fallback
-            return "1.10.0"
+            print(f"⚠️  No stable versions found in API response, using fallback: {fallback_version}")
+            self.latest_version = fallback_version
+            return self.latest_version
             
         except Exception as e:
             print(f"⚠️  Warning: Could not fetch latest Terraform version: {e}")
-            print("Using fallback version 1.10.0")
-            self.latest_version = "1.10.0"
+            print(f"Using fallback version {fallback_version}")
+            self.latest_version = fallback_version
             return self.latest_version
     
     def parse_version_constraint(self, constraint: str) -> Optional[str]:
