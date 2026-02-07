@@ -68,24 +68,17 @@ class TerraformVersionChecker:
             if stable_versions:
                 # Sort versions in descending order
                 stable_versions.sort(reverse=True)
-                latest = stable_versions[0]
                 
-                # Get the same major.minor but patches_behind versions back
-                target_major_minor = f"{latest.major}.{latest.minor}"
-                same_minor_versions = [
-                    v for v in stable_versions 
-                    if f"{v.major}.{v.minor}" == target_major_minor
-                ]
-                
-                # Get version 'patches_behind' patches back
-                if len(same_minor_versions) > patches_behind:
-                    target_version = same_minor_versions[patches_behind]
+                # Robust version selection: pick the version at the exact offset
+                # in the sorted list of stable releases.
+                if len(stable_versions) > patches_behind:
+                    target_version = stable_versions[patches_behind]
                 else:
-                    # If not enough patches, use the oldest in this minor
-                    target_version = same_minor_versions[-1] if same_minor_versions else latest
+                    # If we don't have enough stable versions, use the oldest one found
+                    target_version = stable_versions[-1]
                 
                 self.latest_version = str(target_version)
-                print(f"ℹ️  Targeting version {patches_behind} patch(es) behind latest: {self.latest_version}")
+                print(f"ℹ️  Selected target version ({patches_behind} stable release(s) behind): {self.latest_version}")
                 return self.latest_version
             
             print(f"⚠️  No stable versions found in API response, using fallback: {fallback_version}")
@@ -222,6 +215,8 @@ class TerraformVersionChecker:
         
         # Check .terraform-version files
         version_files = list(base_path.rglob(".terraform-version"))
+        if version_files:
+            print(f"  Found {len(version_files)} .terraform-version file(s)")
         for version_file in version_files:
             finding = self.check_terraform_version_file(version_file)
             if finding:
@@ -229,6 +224,8 @@ class TerraformVersionChecker:
         
         # Check .tf files for required_version
         tf_files = list(base_path.rglob("*.tf"))
+        if tf_files:
+            print(f"  Found {len(tf_files)} .tf file(s)")
         for tf_file in tf_files:
             findings = self.check_required_version(tf_file)
             self.findings.extend(findings)
