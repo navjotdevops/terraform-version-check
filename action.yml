@@ -37,6 +37,13 @@ inputs:
       the action will suggest 1.14.2 instead.
     default: '2'
     required: false
+  
+  apply-updates:
+    description: >
+      Whether to apply the suggested updates to the files.
+      Set to 'true' to modify the files in-place.
+    default: 'false'
+    required: false
 
 outputs:
   updates_found:

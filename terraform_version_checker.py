@@ -271,6 +271,48 @@ class TerraformVersionChecker:
         
         return "\n".join(report)
     
+    def apply_updates(self):
+        """Apply the suggested updates to the files."""
+        if not self.findings:
+            print("✅ No updates to apply.")
+            return
+
+        print(f"\n🛠  Applying {len(self.findings)} update(s)...")
+        
+        for finding in self.findings:
+            file_path = Path(finding["file"])
+            try:
+                if finding["type"] == "terraform-version-file":
+                    with open(file_path, 'w') as f:
+                        f.write(f"{finding['latest_version']}\n")
+                    print(f"  ✅ Updated {file_path}")
+                    
+                elif finding["type"] == "required-version":
+                    with open(file_path, 'r') as f:
+                        content = f.read()
+                    
+                    # Update the specific constraint
+                    # We use a non-greedy match to ensure we only replace the specific finding
+                    old_constraint = finding["current_constraint"]
+                    new_constraint = finding["suggested_constraint"]
+                    
+                    # More precise replacement to avoid accidental changes
+                    # Look for required_version = "OLD"
+                    pattern = rf'required_version\s*=\s*"{re.escape(old_constraint)}"'
+                    replacement = f'required_version = "{new_constraint}"'
+                    
+                    new_content = re.sub(pattern, replacement, content)
+                    
+                    if new_content != content:
+                        with open(file_path, 'w') as f:
+                            f.write(new_content)
+                        print(f"  ✅ Updated {file_path}")
+                    else:
+                        print(f"  ⚠️  Could not find constraint to update in {file_path}")
+                        
+            except Exception as e:
+                print(f"  ❌ Error updating {file_path}: {e}")
+    
     def get_current_version_summary(self) -> str:
         """Get a summary of current versions found."""
         if not self.current_versions:
@@ -339,6 +381,12 @@ def main():
         default=int(os.getenv("INPUT_PATCHES_BEHIND", "2")),
         help="Number of patch versions behind latest to target (default: 2)"
     )
+    parser.add_argument(
+        "--apply-updates",
+        action="store_true",
+        default=os.getenv("INPUT_APPLY_UPDATES", "false").lower() == "true",
+        help="Apply suggested updates to files"
+    )
     
     args = parser.parse_args()
     
@@ -362,6 +410,10 @@ def main():
     # Generate and print report
     report = checker.generate_report()
     print(report)
+    
+    # Apply updates if requested
+    if args.apply_updates:
+        checker.apply_updates()
     
     # Set GitHub Actions outputs
     if os.getenv("GITHUB_ACTIONS"):
