@@ -1,0 +1,52 @@
+name: 'Terraform Version Checker'
+description: 'Checks Terraform versions in .terraform-version files and required_version constraints, suggests upgrades to latest stable version'
+author: 'your-name'
+
+inputs:
+  directory:
+    description: >
+      Where to look for terraform files to check for version updates.
+      The directory is relative to the repository's root.
+      Multiple paths can be provided by splitting them with a new line.
+      Example:
+        directory: |
+          /path/to/first/module
+          /path/to/second/module
+    default: "."
+    required: false
+  
+  token:
+    description: >
+      Auth token used to read the repository being processed.
+      Learn more about creating and using encrypted secrets:
+      https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets
+    default: ${{ github.token }}
+    required: false
+  
+  fail-on-updates:
+    description: >
+      Whether to fail the action if outdated versions are found.
+      Set to 'true' to fail the workflow when updates are available.
+    default: 'false'
+    required: false
+
+outputs:
+  updates_found:
+    description: 'Whether any outdated versions were found (true/false)'
+  
+  update_count:
+    description: 'Number of version updates recommended'
+  
+  latest_version:
+    description: 'Latest stable Terraform version available'
+  
+  findings:
+    description: 'JSON array of all findings with details'
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+
+branding:
+  icon: 'package'
+  color: 'purple'
