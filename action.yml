@@ -1,6 +1,6 @@
 name: 'Terraform Version Checker'
 description: 'Checks Terraform versions in .terraform-version files and required_version constraints, suggests upgrades to latest stable version'
-author: 'your-name'
+author: 'navjotdevops'
 
 inputs:
   directory:
