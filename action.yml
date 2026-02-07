@@ -15,14 +15,11 @@ inputs:
     default: "."
     required: false
   
-  token:
-    description: >
-      Auth token used to read the repository being processed.
-      Learn more about creating and using encrypted secrets:
-      https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets
-    default: ${{ github.token }}
+  github-token:
+    description: 'GitHub token for PR creation and API access. Use secrets.GITHUB_TOKEN or a PAT.'
+    default: '${{ github.token }}'
     required: false
-  
+
   fail-on-updates:
     description: >
       Whether to fail the action if outdated versions are found.
@@ -58,11 +55,6 @@ inputs:
 
   pr-body:
     description: 'Body/Description for the generated Pull Request'
-    required: false
-
-  github-token:
-    description: 'GitHub token for creating PRs and API access'
-    default: '${{ github.token }}'
     required: false
 
 outputs:
