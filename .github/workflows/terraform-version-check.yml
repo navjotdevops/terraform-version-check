@@ -130,7 +130,7 @@ jobs:
             
             const message = `## ⚠️ Terraform Version Update Available
             
-            This PR contains Terraform code. Current version **${currentVersion}** can be updated to **${latestVersion}**.
+            This PR contains Terraform code. updated to **${latestVersion}**.
             
             **${updateCount}** file(s) need to be updated.
             
