@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Check Terraform versions
-        uses: navjotdevops/terraform-version-check@v1
+        uses: navjotdevops/terraform-version-check@v1.0.0
         with:
           directory: '.'
 ```
@@ -72,7 +72,7 @@ Automatically update your Terraform versions and raise a Pull Request with one s
 
 ```yaml
 - name: Check Terraform versions
-  uses: navjotdevops/terraform-version-check@v1
+  uses: navjotdevops/terraform-version-check@v1.0.0
   with:
     directory: |
       ./infrastructure/aws
@@ -84,7 +84,7 @@ Automatically update your Terraform versions and raise a Pull Request with one s
 
 ```yaml
 - name: Check Terraform versions
-  uses: navjotdevops/terraform-version-check@v1
+  uses: navjotdevops/terraform-version-check@v1.0.0
   with:
     directory: '.'
     fail-on-updates: 'true'
@@ -96,7 +96,7 @@ By default, the action targets 2 patch versions behind the latest. You can custo
 
 ```yaml
 - name: Check Terraform versions
-  uses: navjotdevops/terraform-version-check@v1
+  uses: navjotdevops/terraform-version-check@v1.0.0
   with:
     directory: '.'
     patches-behind: '2'  # If latest is 1.14.4, this will suggest 1.14.2
@@ -106,7 +106,7 @@ Set to `0` to always use the absolute latest:
 
 ```yaml
 - name: Check Terraform versions
-  uses: navjotdevops/terraform-version-check@v1
+  uses: navjotdevops/terraform-version-check@v1.0.0
   with:
     patches-behind: '0'  # Use the absolute latest version
 ```
